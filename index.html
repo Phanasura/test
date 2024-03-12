@@ -1550,5 +1550,66 @@ setTimeout(() => {
 }, 6000);
     </script>
 </body>
+<!--
+    import heapq
+def prim(n,adj):
+    visited = [False] * (n+1)
+    sum = 0
+    q = [(0,1)]
+    heapq.heapify(q)
+    while len(q):
+        print(q)
+        u = heapq.heappop(q)
+        if visited[u[1]]:
+            continue
+        sum += u[0]
+        visited[u[1]] = True
+        for v in adj[u[1]]:
+            if not visited[v[1]]:
+                print(q)
+                print(v)
+                heapq.heappush(q, v)
+    return sum
+n = 4; m = 5
+adj = [[] for i in range(n+1)]
+for i in range(m):
+    u,v,w = map(int,fi.readline().split())
+    adj[u].append((w,v))
+    adj[v].append((w,u))
+print(prim(n,adj))
+    
 
+
+
+
+def find(u):
+    global par
+    while (par[u] >= 0):
+        u = par[u]
+    return u
+def uni(u,v):
+    global size,par
+    u = find(u)
+    v = find(v)
+    if u==v:
+        return False
+    if size[u] < size[v]:
+        u,v = v,u
+    size[u] += size[v]
+    par[v] = u
+    return True
+def krus(n,adj):
+    adj.sort( key=lambda x: x[2])
+    sum = 0
+    for e in adj:
+        u,v,w = e
+        if uni(u,v):
+            sum += w
+    return sum
+n = 4; m=5
+edges = [(1, 2,7 ), (1, 4,6), (4, 2, 9), (4, 3, 8), ( 2, 3, 6)]
+par = [-1]*(n+1)
+size = [1]*(n+1)
+print(krus(n,edges))
+-->
 </html>
