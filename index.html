@@ -2,6 +2,16 @@
 <html lang="en">
 
 <head>
+    <--
+    void setIO(string name = "") { 
+    ios_base::sync_with_stdio();
+	cin.tie(0);  cout.tie(0);
+	if (!name.empty()) {
+		freopen((name + ".inP").c_str(), "r", stdin); 
+		//freopen((name + ".out").c_str(), "w", stdout);
+	}
+    }
+    -->
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
