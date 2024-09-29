@@ -1,0 +1,56 @@
+{
+  "Study": {
+    "Monday": {
+      "Morning": [],
+      "Afternoon": [],
+      "Evening": []
+    },
+    "Tuesday": {
+      "Morning": [],
+      "Afternoon": [],
+      "Evening": []
+    },
+    "Wednesday": {
+      "Morning": [],
+      "Afternoon": [],
+      "Evening": []
+    },
+    "Thursday": {
+      "Morning": [],
+      "Afternoon": [],
+      "Evening": []
+    },
+    "Friday": {
+      "Morning": [],
+      "Afternoon": [],
+      "Evening": []
+    },
+    "Saturday": {
+      "Morning": [],
+      "Afternoon": [],
+      "Evening": []
+    },
+    "Sunday": {
+      "Morning": [],
+      "Afternoon": [],
+      "Evening": []
+    }
+  },
+  "GYM": {
+    "Monday": {
+      "Morning": [
+        "cc"
+      ]
+    }
+  },
+  "Money": {
+    "Tuesday": {
+      "Afternoon": [
+        "\u0111\u1ea1k\u00e1d"
+      ],
+      "Morning": [
+        "\u00e1idjoqiwnodnas"
+      ]
+    }
+  }
+}

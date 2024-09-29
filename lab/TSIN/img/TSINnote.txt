@@ -1,0 +1,16 @@
+brain:
+console
+customtkinter >>>C:\Users\ADMIN\AppData\Local\Programs\Python\Python311\Lib\site-packages
+hiddenimports = ["babel.dates", "babel.numbers"]
+
+
+
+
+
+
+
+
+
+body:
+window base
+plyer.platforms.win.notification
