@@ -6,7 +6,7 @@ import sqlite3
 from datetime import datetime, timedelta
 from plyer import notification
 from tkinter import ttk, messagebox
-
+from datetime import datetime
 class WorkWise:
     def __init__(self, root):
         self.root = root
@@ -79,6 +79,10 @@ class WorkWise:
             quick_edit_window.geometry("300x390")
             quick_edit_window.configure(bg="#222121")
             quick_edit_window.attributes('-topmost', True)
+            group_label = tk.Label(quick_edit_window, text="Add Group:", fg="#ffffff", bg="#222121")
+            group_label.pack(padx=10, pady=5)
+            group_entry = tk.Entry(quick_edit_window)
+            group_entry.pack(padx=10, pady=5)
             old_word_label = tk.Label(quick_edit_window, text="Current Reward:", fg="#ffffff", bg="#222121")
             old_word_label.pack(padx=10, pady=5)
             old_word_entry = tk.Entry(quick_edit_window)
@@ -89,6 +93,10 @@ class WorkWise:
 
             def comfirm_word_mean():
                 try:
+                    if group_entry.get().strip():
+                        self.topic.append(group_entry.get())
+                        self.combobox['values'] = self.topic
+                    self.minutes_entry.delete(0, tk.END)
                     new_reward = old_word_entry.get().rstrip(',')
                     self.cursor.execute('UPDATE tasks SET reward = ? WHERE task = ?',
                                         (new_reward, 'original task name',))
@@ -145,6 +153,7 @@ class WorkWise:
                 except:
                     return
 
+            old_word_entry.insert(0, self.get_reward())
             text_area.insert(tk.END, self.get_history())
 
             e_button = tk.Button(quick_edit_window, text="Export", command=exporting, font=("Helvetica", 14))
@@ -152,39 +161,10 @@ class WorkWise:
 
             ok_button = tk.Button(quick_edit_window, text="OK", command=comfirm_word_mean, font=("Helvetica", 14))
             ok_button.pack(side=tk.RIGHT, padx=52)
-
             return
         except:
             messagebox.showerror("Error", f" set !!!")
             return
-    def upgrade_level(self,task_name , masks ):
-        # Thêm vào lịch sử và cập nhật tiến trình
-        conn = sqlite3.connect('setting.db')
-        cursor = conn.cursor()
-
-        # Lấy thông tin hiện tại từ bảng setting
-        cursor.execute('SELECT times, history FROM setting')
-        result = cursor.fetchone()
-
-        if result:
-            current_times, current_history = result
-            print("cur_time:", current_times, "cur history:", current_history)
-            # Cập nhật lịch sử và số lần hoàn thành
-            new_history = current_history + '\n' + f"{task_name}"
-            updated_times = current_times + masks
-            cursor.execute('''
-                                                UPDATE setting
-                                                SET times = ?, history = ?
-                                            ''', (updated_times, new_history))
-
-            conn.commit()
-            self.pro_label['text'] = f"Lv {int(updated_times // 1)}:"
-            self.progress['value'] = (updated_times % 1) / 1
-            self.root.update_idletasks()
-        else:
-            print("No data found in the setting table.")
-
-        conn.close()
 
     def tasks_get_history(self):
         try:
@@ -206,29 +186,16 @@ class WorkWise:
         self.todo_frame = ttk.Frame(self.notebook, style="TFrame")
         self.notebook.add(self.todo_frame, text="Todo")
         self.build_todo_tab()
-
-        # Tab Tasks
-        self.tasks_frame = ttk.Frame(self.notebook, style="TFrame")
-        self.notebook.add(self.tasks_frame, text="Tasks")
-        self.build_tasks_tab()
-
-        # Tab Goals
-        self.goals_frame = ttk.Frame(self.notebook, style="TFrame")
-        self.notebook.add(self.goals_frame, text="Goals")
-        self.build_goals_tab()
-        self.root.update_idletasks()
     def build_todo_tab(self):
         def on_drag_start(event):
             """Lưu chỉ số mục được kéo."""
             widget = event.widget
             self.drag_start_index = widget.nearest(event.y)
-
         def on_drag_motion(event):
             """Làm nổi bật mục đang được kéo."""
             widget = event.widget
             widget.selection_clear(0, tk.END)
             widget.selection_set(widget.nearest(event.y))
-
         def on_drag_drop(event):
             """Hoán đổi vị trí các mục khi thả chuột."""
             widget = event.widget
@@ -242,7 +209,6 @@ class WorkWise:
                 widget.insert(self.drag_start_index, item_end)
                 widget.delete(drag_end_index)
                 widget.insert(drag_end_index, item_start)
-
         def todo_start_timer():
             try:
                 minutes = todo_minutes_entry.get()
@@ -270,7 +236,6 @@ class WorkWise:
             except Exception:
                 messagebox.showerror("Error", f"Counter TIMER decrease ")
                 return
-
         def todo_create_table():
             try:
                 # Tạo bảng tasks nếu nó chưa tồn tại
@@ -285,7 +250,6 @@ class WorkWise:
                 ''')
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to create table: {str(e)}")
-
         def todo_edit_TKB():
             quick_TKB_window = tk.Toplevel(self.root)
             quick_TKB_window.title("Quản lý thời khóa biểu")
@@ -307,7 +271,6 @@ class WorkWise:
                                      state="readonly", width=10)
             combo_day.grid(row=0, column=2, padx=5)
             combo_day.set("Thứ 2")  # Giá trị mặc định
-
             # Nút "Add"
             def add_task():
                 task = entry_task.get()
@@ -325,10 +288,8 @@ class WorkWise:
                     # Thêm vào Treeview
                     load_data()
                     entry_task.delete(0, tk.END)
-
             btn_add = tk.Button(frame_top, text="Add", command=add_task)
             btn_add.grid(row=0, column=3, padx=5)
-
             # Nút "Delete"
             def delete_task():
                 selected_item = tree.selection()
@@ -343,7 +304,6 @@ class WorkWise:
 
                     conn.commit()
                     conn.close()
-
             btn_delete = tk.Button(frame_top, text="Delete", command=delete_task)
             btn_delete.grid(row=0, column=4, padx=5)
             # Tạo Treeview với 7 cột
@@ -354,7 +314,6 @@ class WorkWise:
             for col in columns:
                 tree.heading(col, text=col)
                 tree.column(col, width=100 if col != "ID" else 50)
-
             # Chức năng load dữ liệu từ database vào Treeview
             def load_data():
                 # Xóa các dòng hiện có trong Treeview
@@ -408,9 +367,8 @@ class WorkWise:
                         display_day) + 1
                     tree.insert("", "end",
                                 values=(task_id,) + ("",) * (col_index - 1) + (f"{period}: {task}",) + ("",) * (
-                                        7 - col_index))
+                                            7 - col_index))
                 self.todo_load_tasks()
-
             # Tải dữ liệu khi khởi động
             load_data()
 
@@ -419,15 +377,13 @@ class WorkWise:
             except:
                 messagebox.showerror("Error", f" NOTE !!!")
                 return
-
         def todo_done():
             # Lấy chỉ mục của mục được chọn trong Listbox
             selected_index = self.todo_listbox.curselection()
             if selected_index:
                 # Lấy dòng được chọn
                 task_name = self.todo_listbox.get(selected_index[0])
-                if task_name.startswith("----------") or task_name == "(Không có công việc)" or task_name.startswith(
-                        "[X]"):
+                if task_name.startswith("----------") or task_name == "(Không có công việc)" or task_name.startswith("[X]"):
                     return
                 task_name = task_name[5:]
                 # Cập nhật cột checkok = 1 trong cơ sở dữ liệu
@@ -439,29 +395,52 @@ class WorkWise:
 
                 # Tải lại dữ liệu Listbox
                 self.todo_load_tasks()  # Tải lại tasks của Thứ hai
-                self.upgrade_level(task_name, 0.16)
 
+                # Thêm vào lịch sử và cập nhật tiến trình
+                conn = sqlite3.connect('setting.db')
+                cursor = conn.cursor()
+
+                # Lấy thông tin hiện tại từ bảng setting
+                cursor.execute('SELECT times, history FROM setting')
+                result = cursor.fetchone()
+
+                if result:
+                    current_times, current_history = result
+                    print("cur_time:",current_times,"cur history:",current_history)
+                    # Cập nhật lịch sử và số lần hoàn thành
+                    new_history = current_history + '\n' + f"{task_name}"
+                    updated_times = current_times + 0.16
+                    cursor.execute('''
+                                        UPDATE setting
+                                        SET times = ?, history = ?
+                                    ''', (updated_times, new_history))
+
+                    conn.commit()
+                    self.pro_label['text'] = f"Lv {int(updated_times // 1)}:"
+                    self.progress['value'] = (updated_times % 1) / 1
+                    self.root.update_idletasks()
+                else:
+                    print("No data found in the setting table.")
+
+                conn.close()
             try:
 
                 return
             except Exception as e:
                 messagebox.showerror("Error", f"An error occurred: {str(e)}")
                 return
-
         def next_day():
             # Tăng chỉ số của ngày hiện tại, quay về 0 nếu vượt quá 6
             self.cur_day_index = (self.cur_day_index + 1) % 7
             self.cur_day = self.weekdays[self.cur_day_index]
             self.todo_load_tasks()
             update_label()
-
         def back_day():
             # Giảm chỉ số của ngày hiện tại, quay về 6 nếu giảm xuống -1
             self.cur_day_index = (self.cur_day_index - 1) % 7
             self.cur_day = self.weekdays[self.cur_day_index]
             self.todo_load_tasks()
             update_label()
-
         def get_period():
             # Xác định buổi sáng, trưa, tối dựa trên giờ hiện tại
             now_hour = datetime.now().hour
@@ -471,7 +450,6 @@ class WorkWise:
                 return "Afternoon"
             else:
                 return "Evening"
-
         def update_label():
             # Cập nhật nội dung của todo_label
             todo_label.config(text=f"{self.cur_day.upper()} {self.cur_period}")
@@ -486,18 +464,18 @@ class WorkWise:
         self.cur_day_index = today.weekday()  # Lấy chỉ số của ngày hiện tại
         self.cur_day = self.weekdays[self.cur_day_index]  # Gán ngày hiện tại
         todo_label = ttk.Label(self.todo_frame, text="Danh sách Công Việc hôm nay", font=("Arial", 16),
-                               background="#222121", foreground="#FF0000")
+                                background="#222121", foreground="#FF0000")
         todo_label.pack()
         todo_buttons_frame = tk.Frame(self.todo_frame, bg="#222121")
         todo_buttons_frame.pack(fill=tk.X, padx=10, pady=5)
         todo_add_button = tk.Button(todo_buttons_frame, text="TKB Edit", command=todo_edit_TKB, width=12, bg="#333333",
-                                    fg="#ffffff")
+                                     fg="#ffffff")
         todo_add_button.pack(side=tk.LEFT, padx=10)
         todo_edit_button = tk.Button(todo_buttons_frame, text="<", command=back_day, width=12, bg="#333333",
-                                     fg="#ffffff")
+                                      fg="#ffffff")
         todo_edit_button.pack(side=tk.LEFT, padx=10)
         todo_delete_button = tk.Button(todo_buttons_frame, text=">", command=next_day, width=12,
-                                       bg="#333333", fg="#ffffff")
+                                        bg="#333333", fg="#ffffff")
         todo_delete_button.pack(side=tk.LEFT, padx=10)
         todo_Done_button = tk.Button(todo_buttons_frame, text="Done", command=todo_done, width=12, bg="#333333",
                                      fg="#ffffff")
@@ -528,7 +506,7 @@ class WorkWise:
         todo_minutes_entry = tk.Entry(todo_timer_frame, width=5, font=("Helvetica", 12), bg="#444444", fg="#ffffff")
         todo_minutes_entry.pack(side=tk.LEFT, padx=5)
         todo_ok_button = tk.Button(todo_timer_frame, text="Ok", command=todo_start_timer, width=5, bg="#333333",
-                                   fg="#ffffff")
+                                    fg="#ffffff")
         todo_ok_button.pack(side=tk.LEFT, padx=5)
         todo_hour_entry = tk.Entry(todo_timer_frame, width=5, font=("Helvetica", 12), bg="#444444", fg="#ffffff")
         todo_hour_entry.pack(side=tk.LEFT, padx=5)
@@ -589,6 +567,7 @@ class WorkWise:
 
         # Cập nhật lại Listbox nếu cần
         self.todo_listbox.yview_moveto(1)  # Cuộn xuống cuối cùng (tuỳ chọn)
+
     def build_tasks_tab(self): # self.tasks_frame
 
         def tasks_update_progress(current_value, target_value):
@@ -613,7 +592,32 @@ class WorkWise:
                     tasks_cursor.execute('DELETE FROM tasks WHERE task = ?', (task_name,))
                     tasks_conn.commit()
                     self.tasks_load_tasks()
-                    self.upgrade_level(task_name, 0.25)
+                    # thêm vào history times+1 update progress bar
+                    conn = sqlite3.connect('setting.db')
+                    cursor = conn.cursor()
+
+                    # Fetch current times and history
+                    cursor.execute('SELECT times, history FROM setting')
+                    result = cursor.fetchone()
+
+                    if result:
+                        current_times, current_history = result
+                        new_history = current_history + '\n' + f"{task_name} - {reward}"
+                        # Update times (increment by 1) and history (with new_history)
+                        updated_times = current_times + 1
+                        cursor.execute('''
+                                            UPDATE setting
+                                            SET times = ?, history = ?
+                                        ''', (updated_times, new_history,))
+
+                        # Commit changes
+                        conn.commit()
+                        print("Update successful. New times:", updated_times, new_history)
+                        self.pro_label['text'] = f"Lv {updated_times // 3}:"
+                        tasks_update_progress(updated_times % 3, 3)
+                    else:
+                        print("No data found in the setting table.")
+                    conn.close()
                 return
             except:
                 messagebox.showerror("Error", f" done !!!")
@@ -820,7 +824,6 @@ class WorkWise:
             topic = self.tasks_combobox.get()
             if task:
                 reward = random.choice(tasks_get_reward().split(','))
-                print("task:", task, "reward:", reward, "topic:", topic)
                 tasks_cursor.execute('INSERT INTO tasks (task, reward, topic) VALUES (?, ?, ?)',
                                (task, reward, topic))
                 tasks_conn.commit()
@@ -999,6 +1002,7 @@ class WorkWise:
         except Exception as e:
             # Hiển thị thông báo lỗi nếu có
             messagebox.showerror("Error", f"Failed to load tasks: {str(e)}")
+
     def build_goals_tab(self):
         def goals_add_task():
             goals = goals_entry.get().strip()
@@ -1078,6 +1082,16 @@ class WorkWise:
                 widget.delete(drag_end_index)
                 widget.insert(drag_end_index, item_start)
 
+        def goals_update_progress(current_value, target_value):
+            try:
+                """Cập nhật giá trị cho ProgressBar dựa trên giá trị hiện tại và mục tiêu"""
+                percentage = (current_value / target_value) * 100  # Tính phần trăm tiến trình
+                self.progress['value'] = percentage  # Cập nhật giá trị thanh tiến trình
+                self.root.update_idletasks()  # Cập nhật giao diện ngay lập tức
+            except:
+                messagebox.showerror("Error", f" update_progress !!!")
+                return
+
         def goals_done():
             try:
                 # Lấy mục đã chọn trong Listbox
@@ -1088,7 +1102,37 @@ class WorkWise:
                     goals_conn.commit()
                     self.goals_load_tasks()
                     self.tasks_load_tasks()
-                    self.upgrade_level(task_name, 0.7)
+                    conn = sqlite3.connect('setting.db')
+                    cursor = conn.cursor()
+
+                    # Lấy giá trị hiện tại của `times` và `history`
+                    cursor.execute('SELECT times, history FROM setting')
+                    result = cursor.fetchone()
+
+                    if result:
+                        current_times, current_history = result
+
+                        # Cập nhật lịch sử và số lần hoàn thành
+                        new_history = current_history + '\n' + f"{task_name}"
+                        updated_times = current_times + 1
+
+                        cursor.execute('''
+                            UPDATE setting
+                            SET times = ?, history = ?
+                        ''', (updated_times, new_history,))
+
+                        # Lưu thay đổi
+                        conn.commit()
+                        print("Update successful. New times:", updated_times, new_history)
+
+                        # Cập nhật nhãn hiển thị Level và tiến trình
+                        self.pro_label['text'] = f"Lv {updated_times // 3}:"
+                        goals_update_progress(updated_times % 3, 3)
+                    else:
+                        print("No data found in the setting table.")
+
+                    conn.close()
+
                 else:
                     messagebox.showinfo("Info", "No task selected.")
                 return
@@ -1190,7 +1234,6 @@ class WorkWise:
                                         bg="#333333", fg="#ffffff")
         goals_delete_button.pack(side=tk.LEFT, padx=10)
         self.goals_load_tasks()
-
 
 ##OK Popup Counter decrease
 class PopUpTimer:
